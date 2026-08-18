@@ -53,14 +53,14 @@ const createExpense = async(req, res) => {
             category,
             date,
         } = req.body;
-        if(!title || !amount || !category || date){
+        if(!title || !amount || !category || !date){
             return res.status(400).json({
                 success: false,
                 message: "All fields are required",
                 error: "All fields are required"
             })
         }
-        const expense = Expense.create({
+        const expense = await Expense.create({
             title: title,
             amount: amount,
             category: category,
@@ -79,4 +79,43 @@ const createExpense = async(req, res) => {
             error: error.message
         })
     }
+}
+
+const deleteExpense = async (req, res) => {
+    try {
+        const id = req.params.id;
+        if(!id){
+            return res.status(400).json({
+                success: false,
+                message: "Expense id is required",
+                error: "Expense id is required"
+            })
+        }
+        const expense = await Expense.findByIdAndDelete(id)
+        if(!expense){
+            return res.status(404).json({
+                success: false,
+                message: "Expense not found",
+                error: "Expense not found"
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Expense deleted successfully",
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            message: "Error while deleting expense",
+            error: error.message
+        })
+    }
+}
+
+export {
+    getAllExpenses,
+    getExpensesByCategory,
+    createExpense,
+    deleteExpense
 }
