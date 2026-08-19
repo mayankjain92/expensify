@@ -1,7 +1,7 @@
 import Expense from "../models/expense.model.js";
 const getAllExpenses = async (req, res) => {
     try{
-        const expenses = await Expense.find();
+        const expenses = await Expense.find().sort({ createdAt: -1 });
         return res.status(200).json({
             success: true,
             message: "All Expenses fetched successfully",
@@ -29,7 +29,7 @@ const getExpensesByCategory = async(req, res) => {
                 error: "Category is required"
             })
         }
-        const expenses = await Expense.find({category: category});
+        const expenses = await Expense.find({category: category}).sort({ createdAt: -1 });
         return res.status(200).json({
             success: true,
             message: "Expenses fetched successfully by category",
@@ -53,19 +53,17 @@ const createExpense = async(req, res) => {
             category,
             date,
         } = req.body;
-        if(!title || !amount || !category || !date){
+        if(!title || !amount || !category){
             return res.status(400).json({
                 success: false,
-                message: "All fields are required",
-                error: "All fields are required"
+                message: "Title, amount, and category are required",
+                error: "Title, amount, and category are required"
             })
         }
-        const expense = await Expense.create({
-            title: title,
-            amount: amount,
-            category: category,
-            date: date,
-        })
+        const expenseData = { title, amount, category };
+        if (date) expenseData.date = date;
+
+        const expense = await Expense.create(expenseData);
         return res.status(201).json({
             success: true,
             message: "Expense created successfully",
