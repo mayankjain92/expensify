@@ -1,7 +1,9 @@
 import Expense from "../models/expense.model.js";
 const getAllExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find().sort({ createdAt: -1 });
+    const expenses = await Expense.find({ user: req.user._id }).sort({
+      createdAt: -1,
+    });
     return res.status(200).json({
       success: true,
       message: "All Expenses fetched successfully",
@@ -27,7 +29,10 @@ const getExpensesByCategory = async (req, res) => {
         error: "Category is required",
       });
     }
-    const expenses = await Expense.find({ category: category }).sort({
+    const expenses = await Expense.find({
+      category: category,
+      user: req.user._id,
+    }).sort({
       createdAt: -1,
     });
     return res.status(200).json({
@@ -55,7 +60,7 @@ const createExpense = async (req, res) => {
         error: "Title, amount, and category are required",
       });
     }
-    const expenseData = { title, amount, category };
+    const expenseData = { title, amount, category, user: req.user._id };
     if (date) expenseData.date = date;
 
     const expense = await Expense.create(expenseData);
@@ -84,7 +89,10 @@ const deleteExpense = async (req, res) => {
         error: "Expense id is required",
       });
     }
-    const expense = await Expense.findByIdAndDelete(id);
+    const expense = await Expense.findOneAndDelete({
+      _id: id,
+      user: req.user._id,
+    });
     if (!expense) {
       return res.status(404).json({
         success: false,
@@ -128,17 +136,17 @@ const updateExpense = async (req, res) => {
     }
 
     // const expense = await Expense.findByIdAndUpdate()
-    const expense = await Expense.findByIdAndUpdate(
-      id,
+    const expense = await Expense.findOneAndUpdate(
+      { _id: id, user: req.user._id },
       {
         title,
         amount,
         category,
-        date
+        date,
       },
-      {new: true}
+      { new: true },
     );
-    if(expense){
+    if (expense) {
       return res.status(200).json({
         success: true,
         message: "Expense updated successfully",
@@ -150,7 +158,19 @@ const updateExpense = async (req, res) => {
       message: "Expense not found",
       error: "Expense not found",
     });
-  } catch (error) {}
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error while updating expense",
+      error: error.message,
+    });
+  }
 };
 
-export { getAllExpenses, getExpensesByCategory, createExpense, deleteExpense, updateExpense };
+export {
+  getAllExpenses,
+  getExpensesByCategory,
+  createExpense,
+  deleteExpense,
+  updateExpense,
+};
