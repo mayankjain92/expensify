@@ -17,10 +17,17 @@ const sendTokenResponse = (user, statusCode, res) => {
   const accessToken = generateAccessToken(user._id);
   const refreshToken = generateRefreshToken(user._id);
 
-  const cookieOptions = {
+  const accessTokenOptions = {
+    expires: new Date(Date.now() + 15 * 60 * 1000),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  };
+
+  const refreshTokenOptions = {
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: process.env.NODE_ENV == "production",
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   };
 
@@ -28,10 +35,10 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   res
     .status(statusCode)
-    .cookie("refreshToken", refreshToken, cookieOptions)
+    .cookie("accessToken", accessToken, accessTokenOptions)
+    .cookie("refreshToken", refreshToken, refreshTokenOptions)
     .json({
       success: true,
-      accessToken,
       user,
     });
 };
@@ -157,10 +164,20 @@ export const refreshTokenController = async (req, res) => {
 
     const newAccessToken = generateAccessToken(user._id);
 
-    return res.status(200).json({
-      success: true,
-      accessToken: newAccessToken,
-    });
+    const accessTokenOptions = {
+      expires: new Date(Date.now() + 15 * 60 * 1000),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", newAccessToken, accessTokenOptions)
+      .json({
+        success: true,
+        message: "Token refreshed successfully",
+      });
   } catch (error) {
     return res.status(401).json({
       success: false,

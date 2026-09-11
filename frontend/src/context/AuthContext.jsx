@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
            const res = await api.post('/auth/login', {email, password})
            if(res.data.success){
             setUser(res.data.user);
-            router.push('/');
+            router.push('/dashboard');
            }
     };
 
@@ -40,7 +40,7 @@ export function AuthProvider({ children }) {
         const res = await api.post('/auth/register', {username, email, password})
         if(res.data.success){
             setUser(res.data.user);
-            router.push('/');
+            router.push('/dashboard');
         }
     }
 
