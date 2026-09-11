@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import Header from '@/components/Header';
-import ExpenseForm from '@/components/ExpenseForm';
-import ExpenseFilter from '@/components/ExpenseFilter';
-import ExpenseList from '@/components/ExpenseList';
-
-const API_BASE_URL = 'http://localhost:5000/api/expenses';
+import { useState, useEffect } from "react";
+import api from "../lib/api.js";
+import Header from "@/components/Header";
+import ExpenseForm from "@/components/ExpenseForm";
+import ExpenseFilter from "@/components/ExpenseFilter";
+import ExpenseList from "@/components/ExpenseList";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { Loader } from "lucide-react";
 
 export default function Home() {
   const [expenses, setExpenses] = useState([]);
@@ -16,55 +17,78 @@ export default function Home() {
 
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    title: '',
-    amount: '',
-    category: 'Food',
-    date: '',
+    title: "",
+    amount: "",
+    category: "Food",
+    date: "",
   });
 
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     const fetchExpenses = async () => {
       setLoading(true);
       setError(null);
+      let url = "/expenses";
       try {
-        let url = API_BASE_URL;
-        if (selectedCategory !== 'All') {
-          url = `${API_BASE_URL}/category/${selectedCategory}`;
+        if (selectedCategory !== "All") {
+          url = `/expenses/category/${selectedCategory}`;
         }
-        const response = await axios.get(url);
+        const response = await api.get(url);
         if (response.data.success) {
           setExpenses(response.data.data);
         } else {
-          setError(response.data.message || 'Failed to fetch expenses');
+          setError(response.data.message || "Failed to fetch expenses");
         }
       } catch (err) {
         console.error(err);
-        setError(err.message || 'Network error');
+        setError(err.message || "Network error");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchExpenses();
-  }, [selectedCategory]);
+    if (user) {
+      fetchExpenses();
+    }
+  }, [user, selectedCategory]);
+
+  if (authLoading) {
+    return (
+      <div className="h-screen w-full bg-black flex items-center justify-center">
+        <Loader className="w-10 h-10 animate-spin text-white" />
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingId) {
         // UPDATE existing expense
-        const response = await axios.patch(`${API_BASE_URL}/${editingId}`, formData);
+        const response = await api.patch(`/expenses/${editingId}`, formData);
         if (response.data.success) {
           setExpenses((prev) =>
-            prev.map((item) => (item._id === editingId ? response.data.data : item))
+            prev.map((item) =>
+              item._id === editingId ? response.data.data : item,
+            ),
           );
         }
         setEditingId(null);
       } else {
         // CREATE new expense
-        const response = await axios.post(API_BASE_URL, formData);
+        const response = await api.post("/expenses", formData);
         if (response.data.success) {
           setExpenses((prev) => [response.data.data, ...prev]);
         }
@@ -72,13 +96,13 @@ export default function Home() {
 
       // Reset Form
       setFormData({
-        title: '',
-        amount: '',
-        category: 'Food',
-        date: '',
+        title: "",
+        amount: "",
+        category: "Food",
+        date: "",
       });
     } catch (err) {
-      console.error('Error submitting expense:', err);
+      console.error("Error submitting expense:", err);
     }
   };
 
@@ -88,43 +112,44 @@ export default function Home() {
       title: expense.title,
       amount: expense.amount,
       category: expense.category,
-      date: expense.date ? expense.date.split('T')[0] : '',
+      date: expense.date ? expense.date.split("T")[0] : "",
     });
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
     setFormData({
-      title: '',
-      amount: '',
-      category: 'Food',
-      date: '',
+      title: "",
+      amount: "",
+      category: "Food",
+      date: "",
     });
   };
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/${id}`);
-      if (response.status === 200) {
+      const response = await api.delete(`/expenses/${id}`);
+      if (response.data.success) {
         setExpenses((prev) => prev.filter((item) => item._id !== id));
       }
     } catch (err) {
-      console.error('Error deleting expense:', err);
+      console.error("Error deleting expense:", err);
     }
   };
 
-  const totalAmount = expenses.reduce((acc, item) => acc + Number(item.amount || 0), 0);
+  const totalAmount = expenses.reduce(
+    (acc, item) => acc + Number(item.amount || 0),
+    0,
+  );
 
   return (
     <main className="min-h-screen bg-black text-zinc-100 p-4 sm:p-8 md:p-12 font-sans selection:bg-zinc-800 selection:text-white">
       <div className="max-w-6xl mx-auto space-y-8">
-        
         {/* Header Section */}
         <Header totalAmount={totalAmount} />
 
         {/* Main Grid Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          
           {/* Sidebar Form */}
           <div className="lg:col-span-1">
             <ExpenseForm
@@ -151,9 +176,7 @@ export default function Home() {
               onDelete={handleDelete}
             />
           </div>
-
         </div>
-
       </div>
     </main>
   );

@@ -1,26 +1,39 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
+export const generateAccessToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "15m",
+  });
+};
+
+export const generateRefreshToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: "7d",
+  });
+};
+
 const sendTokenResponse = (user, statusCode, res) => {
-  const token = jwt.sign(
-    { id: user._id },
-    process.env.JWT_SECRET || "FALLBACK_SECRET",
-    { expiresIn: "7d" },
-  );
+  const accessToken = generateAccessToken(user._id);
+  const refreshToken = generateRefreshToken(user._id);
 
   const cookieOptions = {
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    // secure: process.env.NODE_ENV == "production",
+    secure: process.env.NODE_ENV == "production",
     sameSite: "strict",
   };
 
   user.password = undefined;
 
-  res.status(statusCode).cookie("token", token, cookieOptions).json({
-    success: true,
-    user,
-  });
+  res
+    .status(statusCode)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json({
+      success: true,
+      accessToken,
+      user,
+    });
 };
 
 export const register = async (req, res) => {
@@ -84,7 +97,12 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    res.cookie("token", "", {
+    res.cookie("accessToken", "", {
+      expires: new Date(0),
+      httpOnly: true,
+      sameSite: "strict",
+    });
+    res.cookie("refreshToken", "", {
       expires: new Date(0),
       httpOnly: true,
       sameSite: "strict",
@@ -97,6 +115,57 @@ export const logout = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+export const getMe = async (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      user: req.user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const refreshTokenController = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "No refresh token provided.",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const newAccessToken = generateAccessToken(user._id);
+
+    return res.status(200).json({
+      success: true,
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Failed to refresh token.",
+      error: error.message,
     });
   }
 };

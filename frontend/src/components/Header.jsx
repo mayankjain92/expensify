@@ -1,9 +1,14 @@
 'use client';
 
-import { Wallet, TrendingUp } from 'lucide-react';
+import { Wallet, TrendingUp, LogOut } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from './ui/button';
+
 
 export default function Header({ totalAmount }) {
+  const { user, logout } = useAuth();
+
   return (
     <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-8 border-b border-zinc-800/80 gap-4">
       <div>
@@ -31,6 +36,24 @@ export default function Header({ totalAmount }) {
           <TrendingUp className="w-4 h-4 text-zinc-300" />
         </div>
       </Card>
+      {user && (
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex flex-col items-end px-2">
+              <span className="text-xs font-semibold text-white capitalize">{user.username}</span>
+              <span className="text-[10px] text-zinc-500">{user.email}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={logout}
+              className="flex items-center gap-1.5 text-zinc-400 hover:text-red-400 hover:border-red-900/50"
+              title="Sign Out"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
+          </div>
+        )}
     </header>
   );
 }
