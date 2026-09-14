@@ -1,7 +1,9 @@
+import { Response } from "express";
+import { AuthRequest } from "../middlewares/authMiddleware.js";
 import Expense from "../models/expense.model.js";
-const getAllExpenses = async (req, res) => {
+const getAllExpenses = async (req: AuthRequest, res: Response) => {
   try {
-    const expenses = await Expense.find({ user: req.user._id }).sort({
+    const expenses = await Expense.find({ user: req.user?._id }).sort({
       createdAt: -1,
     });
     return res.status(200).json({
@@ -9,8 +11,8 @@ const getAllExpenses = async (req, res) => {
       message: "All Expenses fetched successfully",
       data: expenses,
     });
-  } catch (err) {
-    console.log(err);
+  } catch (err: any) {
+    console.error(err);
     return res.status(500).json({
       success: false,
       message: "Error while fetching expenses",
@@ -19,7 +21,7 @@ const getAllExpenses = async (req, res) => {
   }
 };
 
-const getExpensesByCategory = async (req, res) => {
+const getExpensesByCategory = async (req: AuthRequest, res: Response) => {
   try {
     const category = req.params.category;
     if (!category) {
@@ -31,7 +33,7 @@ const getExpensesByCategory = async (req, res) => {
     }
     const expenses = await Expense.find({
       category: category,
-      user: req.user._id,
+      user: req.user?._id,
     }).sort({
       createdAt: -1,
     });
@@ -40,7 +42,7 @@ const getExpensesByCategory = async (req, res) => {
       message: "Expenses fetched successfully by category",
       data: expenses,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
     return res.status(500).json({
       success: false,
@@ -50,7 +52,7 @@ const getExpensesByCategory = async (req, res) => {
   }
 };
 
-const createExpense = async (req, res) => {
+const createExpense = async (req: AuthRequest, res: Response) => {
   try {
     const { title, amount, category, date } = req.body;
     if (!title || !amount || !category) {
@@ -60,7 +62,13 @@ const createExpense = async (req, res) => {
         error: "Title, amount, and category are required",
       });
     }
-    const expenseData = { title, amount, category, user: req.user._id };
+    const expenseData = {
+      title,
+      amount,
+      category,
+      user: req.user?._id,
+      date: date || undefined,
+    };
     if (date) expenseData.date = date;
 
     const expense = await Expense.create(expenseData);
@@ -69,7 +77,7 @@ const createExpense = async (req, res) => {
       message: "Expense created successfully",
       data: expense,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
     return res.status(500).json({
       success: false,
@@ -79,7 +87,7 @@ const createExpense = async (req, res) => {
   }
 };
 
-const deleteExpense = async (req, res) => {
+const deleteExpense = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id;
     if (!id) {
@@ -91,7 +99,7 @@ const deleteExpense = async (req, res) => {
     }
     const expense = await Expense.findOneAndDelete({
       _id: id,
-      user: req.user._id,
+      user: req.user?._id,
     });
     if (!expense) {
       return res.status(404).json({
@@ -104,7 +112,7 @@ const deleteExpense = async (req, res) => {
       success: true,
       message: "Expense deleted successfully",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
     return res.status(500).json({
       success: false,
@@ -114,7 +122,7 @@ const deleteExpense = async (req, res) => {
   }
 };
 
-const updateExpense = async (req, res) => {
+const updateExpense = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { title, amount, category, date } = req.body;
@@ -137,7 +145,7 @@ const updateExpense = async (req, res) => {
 
     // const expense = await Expense.findByIdAndUpdate()
     const expense = await Expense.findOneAndUpdate(
-      { _id: id, user: req.user._id },
+      { _id: id, user: req.user?._id },
       {
         title,
         amount,
@@ -158,7 +166,7 @@ const updateExpense = async (req, res) => {
       message: "Expense not found",
       error: "Expense not found",
     });
-  } catch (error) {
+  } catch (error: any) {
     return res.status(500).json({
       success: false,
       message: "Error while updating expense",

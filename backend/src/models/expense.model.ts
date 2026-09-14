@@ -1,6 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-const expenseSchema = mongoose.Schema(
+export interface IExpense extends Document {
+  user: mongoose.Types.ObjectId;
+  title: string;
+  amount: number;
+  category: string;
+  date: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const expenseSchema = new Schema<IExpense>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -28,4 +38,4 @@ const expenseSchema = mongoose.Schema(
   { timestamps: true },
 );
 
-export default mongoose.model("Expense", expenseSchema);
+export default mongoose.model<IExpense>("Expense", expenseSchema);

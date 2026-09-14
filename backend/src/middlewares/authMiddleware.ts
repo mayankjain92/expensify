@@ -1,13 +1,26 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.model.js";
+import User, { IUser } from "../models/user.model.js";
+import { NextFunction, Request, Response } from "express";
 
-export const protect = async (req, res, next) => {
+export interface AuthRequest extends Request {
+  user?: IUser;
+}
+
+interface JwtPayload {
+  id: string;
+}
+
+export const protect = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    let token;
+    let token: string | undefined;
 
     if (req.header("Authorization")) {
-      token = req.header("Authorization").split(" ")[1];
-    } else if (req.cookies.accessToken) {
+      token = req.header("Authorization")?.split(" ")[1];
+    } else if (req.cookies?.accessToken) {
       token = req.cookies.accessToken;
     }
 
@@ -18,7 +31,10 @@ export const protect = async (req, res, next) => {
       });
     }
 
-    const decode = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const decode = jwt.verify(
+      token,
+      process.env.ACCESS_TOKEN_SECRET!,
+    ) as JwtPayload;
     const user = await User.findById(decode.id);
 
     if (!user) {
