@@ -13,4 +13,7 @@ export const expenseSchema = z.object({
   date: z.string().optional(),
 });
 
+export const updateExpenseSchema = expenseSchema.partial();
+
 export type ExpenseInput = z.infer<typeof expenseSchema>;
+export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;
