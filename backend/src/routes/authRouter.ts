@@ -7,10 +7,12 @@ import {
   refreshTokenController,
 } from "../controllers/authController.js";
 import { protect } from "../middlewares/authMiddleware.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import { registerSchema } from "../validations/register.validation.js";
 
 const authRouter = express.Router();
 
-authRouter.post("/register", register);
+authRouter.post("/register", validate(registerSchema), register);
 authRouter.post("/login", login);
 authRouter.post("/logout", logout);
 authRouter.get("/me", protect, getMe);

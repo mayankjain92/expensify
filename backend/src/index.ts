@@ -5,6 +5,7 @@ import expenseRouter from "./routes/expenseRoute.js";
 import authRouter from "./routes/authRouter.js";
 import dbconnect from "./configs/db.js";
 import cookieParser from "cookie-parser";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 dotenv.config();
 
@@ -23,6 +24,8 @@ dbconnect();
 
 app.use("/api/auth", authRouter);
 app.use("/api/expenses", expenseRouter);
+
+app.use(errorHandler);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log(`Server is running on PORT: ${process.env.PORT}`);
