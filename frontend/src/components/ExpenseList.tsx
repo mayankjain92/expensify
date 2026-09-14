@@ -3,8 +3,23 @@
 import { Edit3, Trash2, Loader2, FolderOpen } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Expense } from '@/types';
 
-export default function ExpenseList({ expenses, loading, error, onStartEdit, onDelete }) {
+interface ExpenseListProps {
+  expenses: Expense[];
+  loading: boolean;
+  error: string | null;
+  onStartEdit: (expense: Expense) => void;
+  onDelete: (id: string) => void;
+}
+
+export default function ExpenseList({
+  expenses,
+  loading,
+  error,
+  onStartEdit,
+  onDelete,
+}: ExpenseListProps) {
   if (loading) {
     return (
       <Card className="p-12 text-center">

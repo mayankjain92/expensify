@@ -1,32 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import React, { useState } from "react";
+import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-export default function RegisterPage() {
-  const [username, setUsername] = useState("");
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register } = useAuth();
+  const { login } = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevents page reload
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setError("");
     setIsSubmitting(true);
 
     try {
-      await register(username, email, password);
-      // Notice: AuthContext automatically redirects to '/' on success!
-    } catch (err) {
-      // Backend returns errors in err.response?.data?.message
-      setError(err.response?.data?.message || "Something went wrong");
+      await login(email, password);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "Invalid credentials");
+      } else {
+        setError("Invalid credentials");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -37,7 +39,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md p-2">
         <CardHeader>
           <CardTitle className="text-xl font-bold text-center text-white">
-            Sign Up to Expensify
+            Sign In to Expensify
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -47,20 +49,6 @@ export default function RegisterPage() {
                 {error}
               </div>
             )}
-
-            <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase">
-                Username
-              </label>
-              <Input
-                type="text"
-                required
-                placeholder="john_doe"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-
             <div>
               <label className="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase">
                 Email
@@ -73,7 +61,6 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-
             <div>
               <label className="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase">
                 Password
@@ -86,15 +73,13 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-
             <Button type="submit" className="w-full mt-2" disabled={isSubmitting}>
-              {isSubmitting ? "Signing up..." : "Sign Up"}
+              {isSubmitting ? "Signing in..." : "Sign In"}
             </Button>
-
             <p className="text-center text-xs text-zinc-400 pt-2">
-              Already have an account?{" "}
-              <Link href="/login" className="text-white hover:underline font-semibold">
-                Sign In
+              Don&apos;t have an account?{" "}
+              <Link href="/register" className="text-white hover:underline font-semibold">
+                Sign Up
               </Link>
             </p>
           </form>

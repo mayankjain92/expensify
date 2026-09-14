@@ -8,7 +8,12 @@ const buttonVariants = {
   destructive: 'border border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-red-900/50 hover:bg-red-950/30 hover:text-red-400',
 };
 
-const Button = React.forwardRef(({ className, variant = 'default', size = 'default', disabled, children, ...props }, ref) => {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ className, variant = 'default', size = 'default', disabled, children, ...props }, ref) => {
   const sizeClasses = {
     default: 'h-10 px-4 py-2 text-sm',
     sm: 'h-8 px-3 text-xs',

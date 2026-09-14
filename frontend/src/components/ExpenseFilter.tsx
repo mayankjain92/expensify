@@ -3,7 +3,12 @@
 import { Filter, Layers } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
-export default function ExpenseFilter({ selectedCategory, onSelectCategory }) {
+interface ExpenseFilterProps {
+  selectedCategory: string;
+  onSelectCategory: (category: string) => void;
+}
+
+export default function ExpenseFilter({ selectedCategory, onSelectCategory }: ExpenseFilterProps) {
   return (
     <Card className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4">
       <div className="flex items-center gap-2.5">

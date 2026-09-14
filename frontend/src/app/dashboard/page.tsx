@@ -9,21 +9,22 @@ import ExpenseList from "@/components/ExpenseList";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
+import { Expense, ExpenseFormData } from "@/types";
 
 export default function DashboardPage() {
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState<ExpenseFormData>({
     title: "",
     amount: "",
     category: "Food",
     date: "",
   });
 
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -49,9 +50,13 @@ export default function DashboardPage() {
         } else {
           setError(response.data.message || "Failed to fetch expenses");
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err.message || "Network error");
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Network error");
+        }
       } finally {
         setLoading(false);
       }
@@ -72,7 +77,7 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       if (editingId) {
@@ -106,7 +111,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleStartEdit = (expense) => {
+  const handleStartEdit = (expense: Expense) => {
     setEditingId(expense._id);
     setFormData({
       title: expense.title,
@@ -126,7 +131,7 @@ export default function DashboardPage() {
     });
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     try {
       const response = await api.delete(`/expenses/${id}`);
       if (response.data.success) {

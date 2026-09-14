@@ -5,7 +5,6 @@ import expenseRouter from "./routes/expenseRoute.js";
 import authRouter from "./routes/authRouter.js";
 import dbconnect from "./configs/db.js";
 import cookieParser from "cookie-parser";
-import { protect } from "./middlewares/authMiddleware.js";
 
 dotenv.config();
 

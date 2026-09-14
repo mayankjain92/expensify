@@ -4,8 +4,23 @@ import { PlusCircle, CheckCircle, X, Tag, Calendar, DollarSign, FileText } from 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ExpenseFormData } from '@/types';
 
-export default function ExpenseForm({ formData, setFormData, onSubmit, editingId, onCancelEdit }) {
+interface ExpenseFormProps {
+  formData: ExpenseFormData;
+  setFormData: React.Dispatch<React.SetStateAction<ExpenseFormData>>;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  editingId: string | null;
+  onCancelEdit: () => void;
+}
+
+export default function ExpenseForm({
+  formData,
+  setFormData,
+  onSubmit,
+  editingId,
+  onCancelEdit,
+}: ExpenseFormProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">

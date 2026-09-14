@@ -5,8 +5,11 @@ import { Card } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from './ui/button';
 
+interface HeaderProps {
+  totalAmount: number;
+}
 
-export default function Header({ totalAmount }) {
+export default function Header({ totalAmount }: HeaderProps) {
   const { user, logout } = useAuth();
 
   return (
@@ -37,23 +40,23 @@ export default function Header({ totalAmount }) {
         </div>
       </Card>
       {user && (
-          <div className="flex items-center gap-2">
-            <div className="hidden md:flex flex-col items-end px-2">
-              <span className="text-xs font-semibold text-white capitalize">{user.username}</span>
-              <span className="text-[10px] text-zinc-500">{user.email}</span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={logout}
-              className="flex items-center gap-1.5 text-zinc-400 hover:text-red-400 hover:border-red-900/50"
-              title="Sign Out"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
+        <div className="flex items-center gap-2">
+          <div className="hidden md:flex flex-col items-end px-2">
+            <span className="text-xs font-semibold text-white capitalize">{user.username}</span>
+            <span className="text-[10px] text-zinc-500">{user.email}</span>
           </div>
-        )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={logout}
+            className="flex items-center gap-1.5 text-zinc-400 hover:text-red-400 hover:border-red-900/50"
+            title="Sign Out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Logout</span>
+          </Button>
+        </div>
+      )}
     </header>
   );
 }
